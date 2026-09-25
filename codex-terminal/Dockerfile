@@ -1,39 +1,12 @@
-ARG BUILD_VERSION=0.1.0
-ARG BUILD_ARCH=amd64
+FROM ghcr.io/moryoav/codex-cli-worker:0.1.56
 
-FROM ghcr.io/home-assistant/base:latest
+RUN install -D -m 0755 /usr/bin/bwrap /opt/codex-sandbox/bwrap.real
 
-ARG BUILD_VERSION
-ARG BUILD_ARCH
+COPY codex-bwrap /opt/codex-sandbox/bwrap
+COPY codex-bwrap-probe.py /opt/codex-sandbox/codex-bwrap-probe.py
+COPY server.py /server.py
+COPY run-worker.sh /run.sh
 
-LABEL \
-  io.hass.version="${BUILD_VERSION}" \
-  io.hass.type="app" \
-  io.hass.arch="${BUILD_ARCH}"
+RUN chmod 0755 /opt/codex-sandbox/bwrap /opt/codex-sandbox/codex-bwrap-probe.py /run.sh
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-RUN \
-  apk add --no-cache \
-    bash \
-    ca-certificates \
-    curl \
-    git \
-    jq \
-    nano \
-    nginx \
-    nodejs \
-    npm \
-    ripgrep \
-    ttyd \
-    yq \
-  && npm install -g @openai/codex \
-  && mkdir -p /run/nginx /etc/nginx/http.d /opt/codex-terminal
-
-COPY run.sh /run.sh
-COPY nginx.conf /etc/nginx/http.d/default.conf
-COPY AGENTS.md /opt/codex-terminal/AGENTS.md
-
-RUN chmod +x /run.sh
-
-CMD ["/run.sh"]
+ENV PATH="/opt/codex-sandbox:${PATH}"

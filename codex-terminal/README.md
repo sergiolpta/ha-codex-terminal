@@ -1,44 +1,35 @@
 # Codex Terminal
 
-Private Home Assistant add-on that exposes a web terminal through Home Assistant Ingress and includes the Codex CLI.
+Home Assistant add-on for Codex diagnostics and explicitly authorized maintenance through Home Assistant Ingress.
 
-This first version is for diagnostics only:
+## Security model
 
-- Ingress enabled
-- No public ports
-- `/config` mounted read-only
-- Codex credentials persisted under `/data/codex`
-- No host access
-- No Docker socket
-- No privileged mode
-- No Home Assistant or Supervisor API token
+The default mode is diagnostic-only:
 
-## First Run
+- `/config` is available to the worker, but Codex runs with `read-only` sandboxing.
+- `maintenance_authorized` defaults to `false`.
+- No public LAN ports, host network, Docker socket, privileged mode, or Supervisor API token.
+- Secrets must not be copied into prompts, reports, logs, or GitHub.
 
-Open the add-on through the Home Assistant sidebar and run:
+Maintenance requires both add-on options to be changed deliberately:
 
-```bash
-codex login --device-auth
-```
+- `codex_sandbox: workspace-write`
+- `maintenance_authorized: true`
 
-Then open the device login URL on your computer, enter the code, and sign in with ChatGPT.
+After maintenance, return both options to the diagnostic defaults and restart the add-on. The worker rejects unsupported sandbox modes and protects its direct configuration-writing routes with the same authorization gate.
 
-After login:
+## First run
 
-```bash
-codex login status
-codex --version
-codex
-```
+1. Install the add-on from the repository.
+2. Start it and open it through Home Assistant Ingress.
+3. Run `codex login --device-auth` in the worker UI.
+4. Confirm the login with ChatGPT device authorization.
+5. Keep the add-on in diagnostic mode for inspections.
 
-## Recommended First Prompt
+## Diagnostic prompt
 
 ```text
 Analise a estrutura de ./config e os logs disponíveis. Não altere arquivos, não reinicie serviços e não exponha valores de segredos. Produza um relatório com achados, evidências e recomendações priorizadas.
 ```
 
-## Notes
-
-This version can read files and logs available inside `/config`, including `home-assistant.log`.
-
-Supervisor and add-on logs are not enabled in this version because that typically requires broader Supervisor API permissions. A later version can add that deliberately if the benefit outweighs the added administrative access.
+The add-on does not automatically authorize maintenance or restart Home Assistant.
