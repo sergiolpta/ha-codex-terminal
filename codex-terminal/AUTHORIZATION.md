@@ -1,24 +1,40 @@
 # Authorization Model
 
-This branch prepares the next Codex Terminal version. The current runtime remains
-diagnostic-only: `/config` is mounted read-only and no maintenance write mode is
-enabled yet.
+The add-on has two operating modes.
 
-## Intended modes
+## Diagnostic mode
 
-- **Diagnostic (default):** Codex can inspect `/config`, but cannot modify it.
-- **Authorized maintenance:** a deliberate user action enables a temporary
-  write-capable session for an approved task.
+This is the default:
 
-## Required safeguards before maintenance mode is implemented
+- `codex_sandbox: read-only`
+- `maintenance_authorized: false`
+- Codex can inspect `/config`, but cannot modify it.
+- Worker runtime data is kept under `/data`.
 
-1. Require an explicit confirmation immediately before enabling writes.
-2. Keep diagnostic mode as the default after installation and restart.
-3. Create a backup or recoverable snapshot before the first write.
-4. Show the files targeted for change before applying them.
-5. Validate Home Assistant configuration after changes.
-6. Redact secrets from terminal output, reports, and task logs.
-7. Provide a clear way to return to diagnostic-only mode.
+## Authorized maintenance mode
 
-This document describes the target behavior. It does not enable write access by
-itself.
+Enable both options deliberately in the add-on configuration:
+
+- `codex_sandbox: workspace-write`
+- `maintenance_authorized: true`
+
+Both switches are required. If either one is missing, the worker falls back to
+`read-only`. Direct worker routes that can write `AGENTS.md` or save a
+dashboard use the same gate.
+
+Before enabling maintenance:
+
+1. Make a Home Assistant backup.
+2. Describe the files and intended changes.
+3. Confirm the change is limited and reversible.
+
+After maintenance:
+
+1. Validate the Home Assistant configuration.
+2. Review the changed files.
+3. Set `codex_sandbox` back to `read-only`.
+4. Set `maintenance_authorized` back to `false`.
+5. Restart the add-on.
+
+This gate is an add-on-level authorization. It does not authorize Home Assistant
+Core restarts, add-on management, network changes, or disclosure of secrets.
