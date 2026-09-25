@@ -1,5 +1,5 @@
 name: Codex Terminal
-version: "0.2.2"
+version: "0.2.3"
 slug: codex_terminal
 description: Codex para diagnóstico e manutenção autorizada do Home Assistant
 url: https://github.com/sergiolpta/ha-codex-terminal
