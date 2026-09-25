@@ -1,4 +1,4 @@
-FROM ghcr.io/openai/codex-cli-worker:0.1.56
+FROM ghcr.io/moryoav/codex-cli-worker:0.1.56
 
 RUN install -D -m 0755 /usr/bin/bwrap /opt/codex-sandbox/bwrap.real
 
